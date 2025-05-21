@@ -1,4 +1,4 @@
-# =% Firestore Schema Dump
+# Firestore Schema Dump
 
 A robust tool for exploring and documenting Firestore database schemas.
 
