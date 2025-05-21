@@ -2,11 +2,13 @@
 
 A robust tool for exploring and documenting Firestore database schemas.
 
+When we are using codegen tools to interface with firestore, it is often nice to have a dump of the schema to pass into the context.
+
 ## Features
 
 - Auto-detects schema from existing documents
 - Rich markdown output with type information
-- Support for all Firestore data types  
+- Support for all Firestore data types
 - Customizable exploration depth and document sampling
 - Error handling and logging
 - Export options (markdown, JSON)
@@ -15,13 +17,10 @@ A robust tool for exploring and documenting Firestore database schemas.
 
 ## Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/firestore-schema-dump.git
-cd firestore-schema-dump
+### Easy
 
-# Install with pip
-pip install -e .
+```bash
+uv tool install git+https://github.com/2389-research/firestore-schema.git
 ```
 
 ## Usage
@@ -52,14 +51,19 @@ firestore-schema \
 ### Or directly using the Python script
 
 ```bash
+git clone https://github.com/2389-research/firestore-schema.git
+cd firestore-schema
+```
+
+```bash
 # Basic usage
-python main.py --project-id your-project-id
+uv run main.py --project-id your-project-id
 
 # With credentials file
-python main.py --credentials /path/to/credentials.json
+uv run main.py --credentials /path/to/credentials.json
 
 # Full options
-python main.py \
+uv run main.py \
     --project-id your-project-id \
     --credentials /path/to/credentials.json \
     --max-docs 10 \
@@ -85,7 +89,7 @@ python main.py \
 ## Example Output
 
 ```markdown
-# =% Firestore Schema Explorer
+# Firestore Schema Explorer
 
 Generated on 2023-03-01 12:34:56
 Project: `your-project-id`
@@ -93,19 +97,21 @@ Project: `your-project-id`
 ### Collection: `users` (150 documents)
 
 #### Document: `user123`
+
 - `name` (string)
 - `email` (string)
 - `age` (integer)
 - `isActive` (boolean)
 - `metadata` (map)
-  - `lastLogin` (timestamp)
-  - `preferences` (map)
-    - `theme` (string)
+    - `lastLogin` (timestamp)
+    - `preferences` (map)
+        - `theme` (string)
 - `tags` (array<string>)
 
 ### Collection: `products` (75 documents)
 
 #### Document: `product456`
+
 - `name` (string)
 - `price` (float)
 - `categories` (array<string>)
@@ -113,6 +119,7 @@ Project: `your-project-id`
 - `createdAt` (timestamp)
 
 ## Statistics
+
 - Collections: 10
 - Documents sampled: 35
 - Fields analyzed: 124
@@ -126,17 +133,15 @@ Project: `your-project-id`
 ### Running Tests
 
 ```bash
-# Install development dependencies
-pip install -e ".[dev]"
 
 # Run all tests
-pytest
+uv run pytest
 
 # Run specific test module
-pytest tests/unit/test_timeout.py
+uv run pytest tests/unit/test_timeout.py
 
 # Run with coverage
-pytest --cov=main tests/
+uv run pytest --cov=main tests/
 ```
 
 ### Contributing
