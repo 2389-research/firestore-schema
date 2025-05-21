@@ -26,6 +26,31 @@ pip install -e .
 
 ## Usage
 
+After installation, you can use the tool in two ways:
+
+### As a command-line utility
+
+```bash
+# Basic usage
+firestore-schema --project-id your-project-id
+
+# With credentials file
+firestore-schema --credentials /path/to/credentials.json
+
+# Full options
+firestore-schema \
+    --project-id your-project-id \
+    --credentials /path/to/credentials.json \
+    --max-docs 10 \
+    --depth 3 \
+    --timeout 60 \
+    --output schema.md \
+    --format md \
+    --verbose
+```
+
+### Or directly using the Python script
+
 ```bash
 # Basic usage
 python main.py --project-id your-project-id
