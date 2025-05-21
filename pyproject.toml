@@ -24,9 +24,16 @@ dev = [
 requires = ["setuptools>=42"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+py-modules = ["main"]
+include-package-data = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 timeout = 30
+
+[tool.uv]
+package = true
 
 [tool.coverage.run]
 source = ["main.py"]
