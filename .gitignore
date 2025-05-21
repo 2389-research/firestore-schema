@@ -1,10 +1,36 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
 
 # Virtual environments
 .venv
+env/
+venv/
+ENV/
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Environment files
+.env
+
+# Output files
+*.schema.md
+firestore_schema.md
+
+# Credentials
+*-firebase-adminsdk-*.json
+
+# Temporary files
+*.patch
+*.bak
+*.tmp
