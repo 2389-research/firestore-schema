@@ -10,6 +10,9 @@ dependencies = [
     "rich>=14.0.0",
 ]
 
+[project.scripts]
+firestore-schema = "main:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
