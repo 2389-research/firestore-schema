@@ -108,6 +108,7 @@ class FirestoreSchemaExplorer:
         self._processed_paths = set()
         self._progress = None
         self._main_task_id = None
+        self._collection_tree = {}
 
         # Initialize Firestore client
         self._init_firestore_client(project_id, credentials_path)
@@ -332,6 +333,13 @@ class FirestoreSchemaExplorer:
                     logger.warning(f"Failed to count documents in {path}: {e}")
                     doc_count_str = "unknown"
 
+            # Track in collection tree
+            actual_doc_count = doc_count if doc_count is not None else 0
+            self._collection_tree[path] = {
+                'doc_count': actual_doc_count,
+                'doc_count_str': doc_count_str if doc_count is not None else "unknown"
+            }
+
             # Add collection header
             collection_header = f"### Collection: `{path}`"
             if doc_count is not None:
@@ -386,8 +394,10 @@ class FirestoreSchemaExplorer:
                             continue
 
                         for subcol in subcollections or []:
+                            # Construct the full subcollection path
+                            subcol_path = f"{doc.reference.path}/{subcol.id}"
                             subcol_output = self.process_collection(
-                                subcol.path, level + 2, collection_task_id
+                                subcol_path, level + 2, collection_task_id
                             )
                             output_lines.extend(subcol_output)
 
@@ -410,6 +420,68 @@ class FirestoreSchemaExplorer:
             self.stats["errors"] += 1
 
         return output_lines
+
+    def generate_ascii_tree(self) -> str:
+        """Generate an ASCII tree representation of the database structure.
+        
+        Returns:
+            String containing the ASCII tree
+        """
+        if not self._collection_tree:
+            return ""
+            
+        output = [f"Project: `{self.db.project}`"]
+        
+        # Separate top-level collections and subcollections
+        top_level = {}
+        subcollections = {}
+        
+        for path, info in self._collection_tree.items():
+            path_parts = path.split('/')
+            if len(path_parts) == 1:
+                # Top-level collection
+                top_level[path] = info
+            else:
+                # Subcollection: collection/doc_id/subcollection
+                parent_collection = path_parts[0]
+                doc_id = path_parts[1]
+                subcol_name = path_parts[2]
+                
+                if parent_collection not in subcollections:
+                    subcollections[parent_collection] = {}
+                if doc_id not in subcollections[parent_collection]:
+                    subcollections[parent_collection][doc_id] = []
+                    
+                subcollections[parent_collection][doc_id].append((subcol_name, info))
+        
+        # Generate tree output
+        sorted_top_level = sorted(top_level.items())
+        
+        for i, (collection_name, collection_info) in enumerate(sorted_top_level):
+            is_last_collection = i == len(sorted_top_level) - 1
+            prefix = "└── " if is_last_collection else "├── "
+            doc_count = collection_info.get('doc_count', 0)
+            output.append(f"{prefix}{collection_name} ({doc_count} docs)")
+            
+            # Add subcollections if they exist
+            if collection_name in subcollections:
+                sorted_docs = sorted(subcollections[collection_name].items())
+                
+                for j, (doc_id, doc_subcols) in enumerate(sorted_docs):
+                    is_last_doc = j == len(sorted_docs) - 1
+                    continuation = "    " if is_last_collection else "│   "
+                    doc_prefix = "└── " if is_last_doc else "├── "
+                    
+                    output.append(f"{continuation}{doc_prefix}{doc_id}/")
+                    
+                    for k, (subcol_name, subcol_info) in enumerate(doc_subcols):
+                        is_last_subcol = k == len(doc_subcols) - 1
+                        subcol_continuation = continuation + ("    " if is_last_doc else "│   ")
+                        subcol_prefix = "└── " if is_last_subcol else "├── "
+                        subcol_doc_count = subcol_info.get('doc_count', 0)
+                        output.append(f"{subcol_continuation}{subcol_prefix}{subcol_name} ({subcol_doc_count} docs)")
+        
+        return "\n".join(output)
 
     def explore_database(self) -> str:
         """Explore the entire Firestore database.
@@ -470,6 +542,16 @@ class FirestoreSchemaExplorer:
                         output.extend(collection_output)
 
                     progress.update(self._main_task_id, completed=len(collections))
+                    
+                    # Add ASCII tree overview after exploration
+                    tree = self.generate_ascii_tree()
+                    if tree:
+                        # Insert tree at the beginning after header
+                        tree_lines = ["\n## Database Structure", "```", tree, "```", ""]
+                        # Find where to insert (after project line)
+                        insert_index = 3  # After header, generated date, and project line
+                        for i, line in enumerate(tree_lines):
+                            output.insert(insert_index + i, line)
 
                 except TimeoutError as e:
                     output.append(f"*Timeout listing collections: {str(e)}*")

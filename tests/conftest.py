@@ -77,12 +77,12 @@ def mock_collection_with_subcollections(mock_document):
     """Mock a collection with documents that have subcollections."""
     mock_subcollection = MagicMock(spec=CollectionReference)
     mock_subcollection.id = "subcollection"
-    mock_subcollection.path = "test_collection/test_doc_id/subcollection"
     mock_subcollection.stream.return_value = []
     mock_subcollection.limit.return_value = mock_subcollection
 
     # Set up the document with a subcollection
     mock_doc = mock_document
+    mock_doc.reference.path = "test_collection/test_doc_id"
     mock_doc.reference.collections.return_value = [mock_subcollection]
 
     # Set up the collection
@@ -128,9 +128,14 @@ def firestore_with_collections(
         if path == "empty_collection":
             return mock_empty_collection
         elif path == "test_collection":
-            return mock_collection_with_docs
-        elif path == "test_collection/test_doc_id/subcollection":
             return mock_collection_with_subcollections
+        elif path == "test_collection/test_doc_id/subcollection":
+            # Return a fresh subcollection mock for the actual subcollection path
+            subcol_mock = MagicMock(spec=CollectionReference)
+            subcol_mock.id = "subcollection"
+            subcol_mock.stream.return_value = []
+            subcol_mock.limit.return_value = subcol_mock
+            return subcol_mock
         elif path == "secure_collection":
             return mock_permission_denied_collection
         return MagicMock()
